@@ -1,0 +1,354 @@
+================================================================================
+    TP PRATIQUE - STREAMING ANALYTICS BIG DATA
+    RÉCAPITULATIF DES FICHIERS FOURNIS
+================================================================================
+
+CONTENU DU PACKAGE TP
+
+Ce package contient tous les fichiers nécessaires pour réaliser le TP de 3h
+sur la plateforme d'analyse Big Data avec JEE/Jakarta EE.
+
+
+STRUCTURE DES FICHIERS
+================================================================================
+
+1. DOCUMENTATION
+   └── TP_Pratique_Big_Data_Enonce.txt    (17 KB)
+       → Énoncé complet du TP avec toutes les parties détaillées
+   
+   └── README.md                          (7.3 KB)
+       → Guide de démarrage rapide
+       → Instructions d'installation
+       → Commandes utiles
+       → Dépannage
+
+
+2. CODE FOURNI (FONCTIONNEL)
+   └── DataGenerator.java                 (11 KB)
+       → Générateur de données de test complet
+       → Produit 100 000 événements + catalogue vidéos
+       → Prêt à l'emploi
+   
+   └── AnalyticsResource_Example.java     (6.2 KB)
+       → Exemple d'API REST avec JAX-RS
+       → Structure de base pour guider les étudiants
+       → À compléter
+
+
+3. CONFIGURATION INFRASTRUCTURE
+   └── docker-compose.yml                 (4.3 KB)
+       → MongoDB + Tomcat configurés
+       → Mongo Express (UI MongoDB)
+       → Prêt à démarrer avec "docker-compose up"
+   
+   └── mongo-init.js                      (2.9 KB)
+       → Script d'initialisation MongoDB
+       → Création des collections et index
+       → Données de test
+
+
+4. CONFIGURATION MAVEN
+   └── pom-parent.xml                     (7.1 KB)
+       → POM parent avec toutes les dépendances
+       → Jakarta EE 10
+       → MongoDB Driver, Hibernate OGM
+       → Jackson pour JSON
+   
+   └── pom-generator.xml                  (3.0 KB)
+       → POM pour le module data-generator
+       → Configuration JAR exécutable
+
+
+5. CONFIGURATION JPA
+   └── persistence.xml                    (5.8 KB)
+       → Configuration Hibernate OGM pour MongoDB
+       → Annotations détaillées
+       → Exemples et explications
+
+
+6. OUTILS DE DÉVELOPPEMENT
+   └── helper.sh                          (7.8 KB)
+       → Script bash pour faciliter le développement
+       → Commandes : setup, start, deploy, test, etc.
+       → À rendre exécutable : chmod +x helper.sh
+   
+   └── postman-collection.json            (Fichier JSON)
+       → Collection Postman complète
+       → 10 requêtes de test prêtes à l'emploi
+       → Tests automatiques inclus
+
+
+================================================================================
+ DÉMARRAGE RAPIDE
+================================================================================
+
+1. EXTRACTION ET SETUP
+   ```bash
+   # Décompresser le package
+   unzip tp-streaming-analytics.zip
+   cd tp-streaming-analytics
+   
+   # Rendre le script helper exécutable
+   chmod +x helper.sh
+   
+   # Setup complet (vérifie les prérequis, démarre Docker, etc.)
+   ./helper.sh setup
+   ```
+
+2. GÉNÉRATION DES DONNÉES
+   ```bash
+   # Générer 100 000 événements de test
+   ./helper.sh generate
+   ```
+
+3. DÉVELOPPEMENT
+   ```bash
+   # Compiler le projet
+   ./helper.sh build
+   
+   # Déployer l'application
+   ./helper.sh deploy
+   
+   # Voir les logs
+   ./helper.sh logs
+   ```
+
+4. TESTS
+   ```bash
+   # Tester l'API
+   ./helper.sh test-api
+   
+   # Vérifier le statut des services
+   ./helper.sh status
+   ```
+
+
+================================================================================
+ A FAIRE
+================================================================================
+
+PARTIE 1 : MODÈLE DE DONNÉES (40 min)
+--------------------------------------
+✓ Fichiers à créer :
+  - ViewEvent.java          (entité événement)
+  - VideoStats.java         (statistiques vidéo)
+  - UserProfile.java        (profil utilisateur)
+  - Video.java              (métadonnées vidéo)
+  - EventRepository.java    (DAO avec CDI)
+  - VideoStatsRepository.java
+
+✓ Technologies :
+  - JPA/Hibernate OGM
+  - MongoDB
+  - CDI pour injection
+
+
+PARTIE 2 : TRAITEMENT BIG DATA (50 min)
+----------------------------------------
+✓ Fichiers à créer :
+  - EventProcessorService.java    (traitement événements)
+  - AnalyticsService.java         (agrégations)
+
+✓ Fonctionnalités :
+  - Ingestion événements
+  - Calcul statistiques (MapReduce-like)
+  - Recommandations personnalisées
+  - Détection tendances
+
+
+PARTIE 3 : API REST (40 min)
+-----------------------------
+✓ Fichiers à créer :
+  - AnalyticsResource.java  (endpoints REST)
+
+✓ Endpoints à implémenter :
+  POST   /events              (ingestion single)
+  POST   /events/batch        (ingestion batch)
+  GET    /videos/top          (top vidéos)
+  GET    /videos/{id}/stats   (stats vidéo)
+  GET    /users/{id}/recommendations
+  GET    /realtime/stream     (SSE - bonus)
+
+
+PARTIE 4 : DASHBOARD MVC (40 min)
+----------------------------------
+✓ Fichiers à créer :
+  - DashboardServlet.java   (contrôleur)
+  - dashboard.jsp           (vue)
+  - style.css               (optionnel)
+
+✓ Fonctionnalités :
+  - Affichage top vidéos
+  - Graphiques statistiques
+  - Mise à jour temps réel (SSE)
+
+
+================================================================================
+OBJECTIFS PÉDAGOGIQUES
+================================================================================
+
+✓ Maîtriser Jakarta EE 10 (CDI, JAX-RS, JPA, Servlet/JSP)
+✓ Travailler avec bases NoSQL (MongoDB)
+✓ Implémenter architecture microservices
+✓ Gérer volumes Big Data (100K+ événements)
+✓ Développer API REST performante
+✓ Créer dashboard MVC temps réel
+✓ Utiliser Docker pour infrastructure
+✓ Appliquer patterns architecturaux (Repository, Service Layer, MVC)
+
+
+================================================================================
+CRITÈRES D'ÉVALUATION (20 POINTS)
+================================================================================
+
+Architecture et patterns         : 4 points
+  - CDI correctement utilisé
+  - Séparation des responsabilités
+  - Repository pattern
+
+Persistance MongoDB              : 4 points
+  - Entités bien modélisées
+  - Repositories fonctionnels
+  - Index optimisés
+
+Traitement Big Data              : 5 points
+  - Ingestion performante
+  - Agrégations correctes
+  - Recommandations pertinentes
+
+API REST                         : 5 points
+  - Tous les endpoints fonctionnels
+  - Gestion d'erreurs
+  - Optimisations (pagination, etc.)
+
+Dashboard MVC                    : 4 points
+  - Pattern MVC respecté
+  - JSP/JSTL utilisés
+  - Interface fonctionnelle
+
+Tests et performance             : 2 points
+  - Métriques atteintes
+  - Tests API réussis
+
+BONUS                            : +2 points
+  - SSE pour temps réel
+  - Cache Redis
+  - Tests unitaires
+  - Détection anomalies
+
+
+================================================================================
+ PRÉREQUIS TECHNIQUES
+================================================================================
+
+LOGICIELS REQUIS :
+- Java JDK 17+
+- Maven 3.8+
+- Docker & Docker Compose
+- Git (optionnel)
+- Postman ou curl (pour tester l'API)
+- IDE (IntelliJ IDEA, Eclipse, VS Code)
+
+CONNAISSANCES :
+- Java SE (POO, Collections, Streams)
+- Bases de données NoSQL
+- HTTP et REST
+- HTML/CSS/JavaScript (basique)
+- Maven
+- Docker (basique)
+
+
+================================================================================
+SUPPORT ET RESSOURCES
+================================================================================
+
+DOCUMENTATION FOURNIE :
+✓ README.md avec guide complet
+✓ Commentaires détaillés dans le code exemple
+✓ persistence.xml avec explications
+✓ Helper script avec commandes utiles
+
+RESSOURCES EXTERNES :
+- MongoDB Java Driver : https://www.mongodb.com/docs/drivers/java/
+- Jakarta EE : https://jakarta.ee/
+- Hibernate OGM : http://hibernate.org/ogm/
+- JAX-RS Tutorial : https://jakarta.ee/specifications/restful-ws/
+
+EN CAS DE PROBLÈME :
+1. Consulter README.md (section Dépannage)
+2. Vérifier les logs : ./helper.sh logs
+3. Tester le statut : ./helper.sh status
+4. Demander à l'enseignant
+
+
+================================================================================
+CHECKLIST DE RENDU
+================================================================================
+
+À la fin du TP, vérifier que vous avez :
+
+□ Code source complet compilable
+□ Base MongoDB avec 100K événements
+□ API REST fonctionnelle (testée avec Postman)
+□ Dashboard web accessible
+□ README.md avec instructions
+□ Captures d'écran du dashboard
+□ (Bonus) Tests unitaires
+□ (Bonus) Docker Compose personnalisé
+
+
+================================================================================
+NOTES IMPORTANTES
+================================================================================
+
+1. Le code fourni (DataGenerator, AnalyticsResource_Example) est FONCTIONNEL
+   et sert de base/exemple. Les étudiants doivent le compléter.
+
+2. Le docker-compose.yml est prêt à l'emploi. Juste lancer :
+   docker-compose up -d
+
+3. Le script helper.sh simplifie toutes les opérations courantes.
+   L'utiliser au maximum !
+
+4. La collection Postman contient tous les tests nécessaires.
+   Importer dans Postman et utiliser.
+
+5. Le persistence.xml est configuré pour MongoDB via Hibernate OGM.
+   Adaptable si besoin d'une base relationnelle en complément.
+
+6. Le DataGenerator peut produire des données en continu (streaming)
+   ou en batch (fichier JSON). Les deux modes sont implémentés.
+
+
+
+
+================================================================================
+ CONSEILS 
+================================================================================
+
+1. COMMENCER PAR LE SETUP
+   - Exécuter helper.sh setup
+   - Vérifier que tout fonctionne
+   - Générer les données de test
+
+2. AVANCER PROGRESSIVEMENT
+   - Une partie à la fois
+   - Tester après chaque implémentation
+   - Ne pas tout compiler d'un coup
+
+3. UTILISER LES LOGS
+   - docker-compose logs -f
+   - Comprendre les erreurs
+   - Debug efficacement
+
+4. TESTER RÉGULIÈREMENT
+   - Postman pour l'API
+   - Navigateur pour le dashboard
+   - Vérifier les données dans MongoDB
+
+5. OPTIMISER À LA FIN
+   - Faire marcher d'abord
+   - Optimiser ensuite
+   - Mesurer les performances
+
+

@@ -1,0 +1,532 @@
+================================================================================
+    TP PRATIQUE - PLATEFORME D'ANALYSE BIG DATA AVEC JEE/JAKARTA EE
+                        Durée : 3 heures
+================================================================================
+
+OBJECTIF DU TP
+--------------
+Développer une application complète d'analyse Big Data pour une plateforme 
+de streaming vidéo simulée. L'application doit ingérer, traiter et analyser 
+des millions d'événements de visualisation en temps réel.
+
+
+CONTEXTE
+--------
+Vous êtes développeur dans une startup de streaming vidéo. La plateforme génère :
+- 1000 événements de visualisation par seconde
+- Métadonnées de 10 000 vidéos
+- 50 000 utilisateurs actifs
+
+Vous devez construire un système d'analyse qui :
+1. Ingère les événements en temps réel
+2. Calcule des statistiques (vues, durée moyenne, vidéos populaires)
+3. Génère des recommandations personnalisées
+4. Affiche un dashboard temps réel
+
+
+ARCHITECTURE À RÉALISER
+------------------------
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  [Data Generator] → [Kafka/Queue] → [Stream Processor]             │
+│                                              ↓                      │
+│                                        [MongoDB/NoSQL]              │
+│                                              ↓                      │
+│                                        [REST API - JEE]             │
+│                                              ↓                      │
+│                                        [Dashboard JSP/MVC]          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+PARTIE 1 : CONFIGURATION ET INFRASTRUCTURE (30 MIN)
+================================================================================
+
+TÂCHE 1.1 - Créer le projet Maven
+----------------------------------
+Structure attendue :
+
+streaming-analytics/
+├── data-generator/          (module générateur de données)
+├── analytics-api/           (module API REST JEE)
+├── analytics-dashboard/     (module Dashboard Web)
+└── pom.xml                  (parent POM)
+
+Dépendances Maven requises :
+- Jakarta EE 10
+- MongoDB Driver / Hibernate OGM
+- JAX-RS (REST)
+- CDI
+- JPA
+- Servlet/JSP
+- JSON-B ou Jackson
+
+Créez la structure de projet avec les pom.xml appropriés.
+
+
+TÂCHE 1.2 - Docker Compose Infrastructure
+------------------------------------------
+Créez un docker-compose.yml qui lance :
+- MongoDB (port 27017)
+- Kafka + Zookeeper (optionnel, peut être remplacé par file queue)
+- Votre application JEE (Wildfly/Payara/TomEE)
+
+Vous recevrez le fichier docker-compose.yml de base à compléter.
+
+
+================================================================================
+PARTIE 2 : GÉNÉRATEUR DE DONNÉES (20 MIN)
+================================================================================
+
+FOURNI : Code Java complet pour générer des données simulées
+
+Le générateur produit des événements JSON comme :
+
+{
+  "eventId": "evt_123456",
+  "userId": "user_789",
+  "videoId": "video_456",
+  "timestamp": "2024-01-15T14:30:00Z",
+  "action": "WATCH",
+  "duration": 245,
+  "quality": "1080p",
+  "deviceType": "mobile"
+}
+
+VOTRE MISSION :
+Exécutez le générateur pour produire 100 000 événements dans un fichier JSON
+ou les envoyer vers Kafka/une queue.
+
+
+================================================================================
+PARTIE 3 : MODÈLE DE DONNÉES ET PERSISTANCE (40 MIN)
+================================================================================
+
+TÂCHE 3.1 - Créer les entités JPA/NoSQL
+----------------------------------------
+
+À CRÉER :
+
+1. Entité Event (événement de visualisation)
+   - Attributs : eventId, userId, videoId, timestamp, action, duration, quality, deviceType
+   - Annotations JPA ou Hibernate OGM pour MongoDB
+   - Index sur userId, videoId, timestamp
+
+2. Entité VideoStats (statistiques agrégées par vidéo)
+   - Attributs : videoId, totalViews, avgDuration, lastUpdated
+   - À calculer en temps réel
+
+3. Entité UserProfile (profil utilisateur)
+   - Attributs : userId, watchHistory, preferences, recommendedVideos
+
+4. Entité Video (métadonnées vidéo)
+   - Attributs : videoId, title, category, duration, uploadDate
+
+
+TÂCHE 3.2 - Créer les Repositories avec CDI
+--------------------------------------------
+
+À CRÉER :
+
+@ApplicationScoped
+public class EventRepository {
+    // Injection EntityManager ou MongoClient
+    // Méthode : save(Event)
+    // Méthode : findByUserId(String userId)
+    // Méthode : findByVideoId(String videoId)
+    // Méthode : findByTimeRange(Date start, Date end)
+}
+
+@ApplicationScoped
+public class VideoStatsRepository {
+    // Méthode : updateStats(String videoId, ViewEvent event)
+    // Méthode : getTopVideos(int limit)
+    // Méthode : getStats(String videoId)
+}
+
+Utilisez CDI pour l'injection de dépendances.
+
+
+================================================================================
+PARTIE 4 : TRAITEMENT BIG DATA (50 MIN)
+================================================================================
+
+TÂCHE 4.1 - Service de Traitement des Événements
+-------------------------------------------------
+
+Créez un service qui :
+
+@ApplicationScoped
+public class EventProcessorService {
+    
+    @Inject
+    EventRepository eventRepository;
+    
+    @Inject
+    VideoStatsRepository statsRepository;
+    
+    /**
+     * Traite un événement de visualisation
+     * 1. Sauvegarde l'événement
+     * 2. Met à jour les statistiques vidéo
+     * 3. Met à jour le profil utilisateur
+     */
+    public void processEvent(ViewEvent event) {
+        // VOTRE CODE ICI
+    }
+    
+    /**
+     * Calcule les vidéos populaires (top 10)
+     */
+    public List<VideoStats> getTopVideos() {
+        // VOTRE CODE ICI
+    }
+    
+    /**
+     * Génère des recommandations pour un utilisateur
+     * Basé sur : historique, vidéos populaires dans sa catégorie
+     */
+    public List<Video> getRecommendations(String userId) {
+        // VOTRE CODE ICI
+    }
+}
+
+
+TÂCHE 4.2 - Traitement Batch (MapReduce-like)
+----------------------------------------------
+
+Créez une tâche qui calcule des statistiques agrégées :
+
+@ApplicationScoped
+public class AnalyticsService {
+    
+    /**
+     * Calcule les statistiques par catégorie de vidéo
+     * Utilise des requêtes d'agrégation MongoDB ou JPQL
+     */
+    public Map<String, CategoryStats> aggregateByCategory() {
+        // GROUP BY category
+        // COUNT, AVG, SUM
+    }
+    
+    /**
+     * Détecte les tendances (vidéos avec croissance rapide)
+     * Compare vues dernières 24h vs semaine précédente
+     */
+    public List<Video> detectTrending() {
+        // VOTRE CODE ICI
+    }
+}
+
+
+================================================================================
+PARTIE 5 : API REST HAUTE PERFORMANCE (40 MIN)
+================================================================================
+
+TÂCHE 5.1 - Endpoints REST avec JAX-RS
+---------------------------------------
+
+Créez les endpoints suivants :
+
+@Path("/api/v1/analytics")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class AnalyticsResource {
+    
+    @Inject
+    EventProcessorService processor;
+    
+    // POST /api/v1/analytics/events
+    // Ingère un nouvel événement
+    @POST
+    @Path("/events")
+    public Response ingestEvent(ViewEvent event) {
+        // VOTRE CODE ICI
+    }
+    
+    // POST /api/v1/analytics/events/batch
+    // Ingère un lot d'événements (bulk insert)
+    @POST
+    @Path("/events/batch")
+    public Response ingestBatch(List<ViewEvent> events) {
+        // VOTRE CODE ICI
+        // Optimisation : batch insert
+    }
+    
+    // GET /api/v1/analytics/videos/top
+    // Retourne les 10 vidéos les plus vues
+    @GET
+    @Path("/videos/top")
+    public Response getTopVideos(@QueryParam("limit") int limit) {
+        // VOTRE CODE ICI
+    }
+    
+    // GET /api/v1/analytics/videos/{videoId}/stats
+    // Statistiques pour une vidéo spécifique
+    @GET
+    @Path("/videos/{videoId}/stats")
+    public Response getVideoStats(@PathParam("videoId") String videoId) {
+        // VOTRE CODE ICI
+    }
+    
+    // GET /api/v1/analytics/users/{userId}/recommendations
+    // Recommandations personnalisées
+    @GET
+    @Path("/users/{userId}/recommendations")
+    public Response getRecommendations(@PathParam("userId") String userId) {
+        // VOTRE CODE ICI
+    }
+    
+    // GET /api/v1/analytics/realtime/stream
+    // Stream SSE des statistiques temps réel
+    @GET
+    @Path("/realtime/stream")
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    public void streamRealtime(@Context SseEventSink sseEventSink) {
+        // VOTRE CODE ICI
+        // Envoie des stats toutes les 2 secondes
+    }
+}
+
+
+TÂCHE 5.2 - Optimisations Performance
+--------------------------------------
+
+Implémentez :
+
+1. Cache avec @CacheResult (optionnel si le temps le permet)
+   - Cache des top vidéos (TTL 60 secondes)
+   - Cache des stats vidéo (TTL 30 secondes)
+
+2. Pagination pour les requêtes volumineuses
+   - Cursor-based pagination
+   - Paramètres : limit, offset ou cursor
+
+3. Compression GZIP pour les réponses
+   - Intercepteur JAX-RS
+
+
+================================================================================
+PARTIE 6 : DASHBOARD WEB MVC (40 MIN)
+================================================================================
+
+TÂCHE 6.1 - Servlet Contrôleur
+-------------------------------
+
+Créez le contrôleur MVC :
+
+@WebServlet("/dashboard")
+public class DashboardServlet extends HttpServlet {
+    
+    @Inject
+    EventProcessorService processor;
+    
+    @Inject
+    AnalyticsService analytics;
+    
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+        // 1. Récupérer les données
+        List<VideoStats> topVideos = processor.getTopVideos();
+        Map<String, CategoryStats> categoryStats = analytics.aggregateByCategory();
+        
+        // 2. Passer à la vue
+        req.setAttribute("topVideos", topVideos);
+        req.setAttribute("categoryStats", categoryStats);
+        
+        // 3. Forward vers JSP
+        req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
+    }
+}
+
+
+TÂCHE 6.2 - Vue JSP avec JSTL
+------------------------------
+
+Créez dashboard.jsp :
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytics Dashboard</title>
+    <style>
+        /* CSS fourni séparément */
+    </style>
+</head>
+<body>
+    <h1>📊 Analytics Dashboard - Streaming Platform</h1>
+    
+    <section id="top-videos">
+        <h2>🔥 Top 10 Videos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Video ID</th>
+                    <th>Total Views</th>
+                    <th>Avg Duration</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                <c:forEach items="${topVideos}" var="video">
+                    <tr>
+                        <td>${video.videoId}</td>
+                        <td><fmt:formatNumber value="${video.totalViews}"/></td>
+                        <td>${video.avgDuration}s</td>
+                        <td><fmt:formatDate value="${video.lastUpdated}" pattern="HH:mm:ss"/></td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </section>
+    
+    <section id="category-stats">
+        <h2>📂 Stats by Category</h2>
+        <!-- À COMPLÉTER : Graphiques avec Chart.js ou équivalent -->
+    </section>
+    
+    <section id="realtime">
+        <h2>⚡ Real-time Events</h2>
+        <div id="event-stream">
+            <!-- Flux SSE ici -->
+        </div>
+    </section>
+    
+    <script>
+        // JavaScript pour SSE
+        const eventSource = new EventSource('/api/v1/analytics/realtime/stream');
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            // Mettre à jour le dashboard
+        };
+    </script>
+</body>
+</html>
+
+
+================================================================================
+TESTS ET VALIDATION (RESTE DU TEMPS)
+================================================================================
+
+TESTS À EFFECTUER :
+
+1. Générer 100 000 événements avec le data generator
+
+2. Tester l'API REST avec curl ou Postman :
+   - POST /api/v1/analytics/events/batch (insérer 1000 événements)
+   - GET /api/v1/analytics/videos/top
+   - GET /api/v1/analytics/users/user_123/recommendations
+
+3. Ouvrir le dashboard et vérifier :
+   - Les top vidéos s'affichent
+   - Les stats se mettent à jour
+   - Le flux temps réel fonctionne
+
+4. Mesurer les performances :
+   - Temps d'insertion de 1000 événements
+   - Temps de calcul des top vidéos
+   - Latence des requêtes API
+
+
+MÉTRIQUES DE SUCCÈS :
+- Ingestion : > 500 événements/seconde
+- Lecture top vidéos : < 100ms
+- Recommandations : < 200ms
+- Dashboard : rafraîchissement < 2 secondes
+
+
+================================================================================
+LIVRABLES
+================================================================================
+
+À la fin du TP, vous devez avoir :
+
+1. ✅ Code source complet (Maven project)
+2. ✅ Base de données MongoDB avec 100K événements
+3. ✅ API REST fonctionnelle (testée avec Postman/curl)
+4. ✅ Dashboard web accessible
+5. ✅ README.md avec instructions de déploiement
+6. ✅ Capture d'écran du dashboard
+
+
+BONUS (si le temps le permet) :
+- Docker Compose complet
+- Tests unitaires (JUnit)
+- Détection d'anomalies (ex: pic soudain de vues)
+- Cache Redis pour performance
+
+
+================================================================================
+RESSOURCES FOURNIES
+================================================================================
+
+Vous trouverez dans le dossier "resources/" :
+
+1. data-generator.zip
+   - DataGenerator.java (générateur d'événements)
+   - pom.xml configuré
+   - Script de lancement
+
+2. docker-compose-base.yml
+   - Configuration MongoDB
+   - Configuration Kafka (optionnel)
+
+3. pom-parent.xml
+   - Dépendances Maven pré-configurées
+
+4. dashboard-style.css
+   - Styles CSS pour le dashboard
+
+5. postman-collection.json
+   - Collection de tests API
+
+
+================================================================================
+NOTATION (20 POINTS)
+================================================================================
+
+Persistance et Modèle (Partie 3)      : 4 points
+Traitement Big Data (Partie 4)        : 5 points
+API REST (Partie 5)                   : 5 points
+Dashboard MVC (Partie 6)              : 4 points
+Tests et Performance                  : 2 points
+                                      ─────────
+TOTAL                                 : 20 points
+
+
+CRITÈRES DÉTAILLÉS :
+
+Architecture et Design Patterns       : /4
+  - CDI correctement utilisé
+  - Séparation des responsabilités
+  - Repository pattern
+
+Qualité du Code                       : /4
+  - Code propre et commenté
+  - Gestion des erreurs
+  - Optimisations
+
+Fonctionnalités                       : /8
+  - Ingestion de données
+  - Calcul de statistiques
+  - Recommandations
+  - Dashboard temps réel
+
+Performance                           : /2
+  - Métriques atteintes
+  - Optimisations implémentées
+
+Documentation                         : /2
+  - README clair
+  - Commentaires pertinents
+
+
+================================================================================
+BON TRAVAIL !
+================================================================================

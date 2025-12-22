@@ -1,0 +1,225 @@
+{
+  "info": {
+    "name": "Streaming Analytics API",
+    "description": "Collection de tests pour l'API Analytics du TP Big Data",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/analytics-api/api/v1/analytics",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Vérifier que l'API est accessible"
+      }
+    },
+    {
+      "name": "Ingest Single Event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventId\": \"evt_{{$randomUUID}}\",\n  \"userId\": \"user_{{$randomInt}}\",\n  \"videoId\": \"video_{{$randomInt}}\",\n  \"timestamp\": \"{{$isoTimestamp}}\",\n  \"action\": \"WATCH\",\n  \"duration\": 245,\n  \"quality\": \"1080p\",\n  \"deviceType\": \"mobile\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/events",
+          "host": ["{{base_url}}"],
+          "path": ["events"]
+        },
+        "description": "Insérer un événement de visualisation unique"
+      }
+    },
+    {
+      "name": "Ingest Batch Events",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"eventId\": \"evt_001\",\n    \"userId\": \"user_123\",\n    \"videoId\": \"video_456\",\n    \"timestamp\": \"2024-01-15T10:00:00Z\",\n    \"action\": \"WATCH\",\n    \"duration\": 1200,\n    \"quality\": \"1080p\",\n    \"deviceType\": \"desktop\"\n  },\n  {\n    \"eventId\": \"evt_002\",\n    \"userId\": \"user_124\",\n    \"videoId\": \"video_456\",\n    \"timestamp\": \"2024-01-15T10:05:00Z\",\n    \"action\": \"WATCH\",\n    \"duration\": 800,\n    \"quality\": \"720p\",\n    \"deviceType\": \"mobile\"\n  },\n  {\n    \"eventId\": \"evt_003\",\n    \"userId\": \"user_125\",\n    \"videoId\": \"video_789\",\n    \"timestamp\": \"2024-01-15T10:10:00Z\",\n    \"action\": \"WATCH\",\n    \"duration\": 1500,\n    \"quality\": \"4K\",\n    \"deviceType\": \"tv\"\n  }\n]"
+        },
+        "url": {
+          "raw": "{{base_url}}/events/batch",
+          "host": ["{{base_url}}"],
+          "path": ["events", "batch"]
+        },
+        "description": "Insérer un lot d'événements (batch insert)"
+      }
+    },
+    {
+      "name": "Get Top Videos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/videos/top?limit=10",
+          "host": ["{{base_url}}"],
+          "path": ["videos", "top"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Nombre de vidéos à retourner"
+            }
+          ]
+        },
+        "description": "Récupérer les N vidéos les plus vues"
+      }
+    },
+    {
+      "name": "Get Video Stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/videos/video_456/stats",
+          "host": ["{{base_url}}"],
+          "path": ["videos", "video_456", "stats"]
+        },
+        "description": "Récupérer les statistiques d'une vidéo spécifique"
+      }
+    },
+    {
+      "name": "Get User Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users/user_123/recommendations?limit=5",
+          "host": ["{{base_url}}"],
+          "path": ["users", "user_123", "recommendations"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "5",
+              "description": "Nombre de recommandations"
+            }
+          ]
+        },
+        "description": "Obtenir des recommandations personnalisées pour un utilisateur"
+      }
+    },
+    {
+      "name": "Get Events by User",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/user/user_123?limit=20",
+          "host": ["{{base_url}}"],
+          "path": ["events", "user", "user_123"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        },
+        "description": "Récupérer les événements d'un utilisateur spécifique"
+      }
+    },
+    {
+      "name": "Get Events by Video",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/video/video_456?limit=50",
+          "host": ["{{base_url}}"],
+          "path": ["events", "video", "video_456"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        },
+        "description": "Récupérer les événements pour une vidéo spécifique"
+      }
+    },
+    {
+      "name": "Get Category Stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/stats/categories",
+          "host": ["{{base_url}}"],
+          "path": ["stats", "categories"]
+        },
+        "description": "Statistiques agrégées par catégorie de vidéo"
+      }
+    },
+    {
+      "name": "Get Trending Videos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/videos/trending?hours=24",
+          "host": ["{{base_url}}"],
+          "path": ["videos", "trending"],
+          "query": [
+            {
+              "key": "hours",
+              "value": "24",
+              "description": "Période en heures pour détecter les tendances"
+            }
+          ]
+        },
+        "description": "Détecter les vidéos en tendance (croissance rapide des vues)"
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script exécuté avant chaque requête",
+          "console.log('Requête vers: ' + pm.request.url);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Tests automatiques après chaque requête",
+          "pm.test('Status code is 200 or 201', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+          "});",
+          "",
+          "pm.test('Response time is less than 500ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(500);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

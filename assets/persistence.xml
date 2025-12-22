@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
+             https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+    <!-- 
+        Configuration de persistance pour MongoDB avec Hibernate OGM
+        
+        À ADAPTER selon vos besoins :
+        - Nom de la base de données
+        - Host et port MongoDB
+        - Authentification
+    -->
+    <persistence-unit name="streamingAnalyticsPU" transaction-type="JTA">
+        <provider>org.hibernate.ogm.jpa.HibernateOgmPersistence</provider>
+        
+        <!-- Entités à mapper (à compléter par les étudiants) -->
+        <class>com.streaming.analytics.model.ViewEvent</class>
+        <class>com.streaming.analytics.model.VideoStats</class>
+        <class>com.streaming.analytics.model.UserProfile</class>
+        <class>com.streaming.analytics.model.Video</class>
+        
+        <properties>
+            <!-- Configuration MongoDB -->
+            <property name="hibernate.ogm.datastore.provider" value="mongodb"/>
+            <property name="hibernate.ogm.datastore.database" value="streaming_analytics"/>
+            <property name="hibernate.ogm.datastore.host" value="mongodb"/>
+            <property name="hibernate.ogm.datastore.port" value="27017"/>
+            
+            <!-- Authentification MongoDB -->
+            <property name="hibernate.ogm.datastore.username" value="admin"/>
+            <property name="hibernate.ogm.datastore.password" value="admin123"/>
+            <property name="hibernate.ogm.datastore.authentication_database" value="admin"/>
+            
+            <!-- Options de création de schéma -->
+            <property name="hibernate.ogm.datastore.create_database" value="true"/>
+            
+            <!-- Stratégie de stockage des associations -->
+            <property name="hibernate.ogm.mongodb.association_document_storage" value="COLLECTION"/>
+            
+            <!-- Logging (utile pour le debug) -->
+            <property name="hibernate.show_log" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+
+    <!-- 
+        ALTERNATIVE : Configuration pour base relationnelle (optionnel)
+        Si vous préférez utiliser PostgreSQL ou MySQL pour certaines données
+    -->
+    <!--
+    <persistence-unit name="streamingAnalyticsRelationalPU" transaction-type="JTA">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        
+        <jta-data-source>java:/PostgresDS</jta-data-source>
+        
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+    -->
+
+</persistence>
+
+
+<!--
+═══════════════════════════════════════════════════════════════════════════
+NOTES POUR LES ÉTUDIANTS
+═══════════════════════════════════════════════════════════════════════════
+
+1. CONFIGURATION MONGODB
+   - hibernate.ogm.datastore.provider : Type de base NoSQL (mongodb, cassandra, neo4j)
+   - hibernate.ogm.datastore.database : Nom de votre base de données
+   - hibernate.ogm.datastore.host : Hostname (localhost en dev, mongodb dans Docker)
+   - hibernate.ogm.datastore.port : Port MongoDB (27017 par défaut)
+
+2. AUTHENTIFICATION
+   - En production, utilisez des variables d'environnement pour les credentials
+   - Ne committez JAMAIS les mots de passe en dur dans le code
+   - Exemple : ${MONGODB_PASSWORD}
+
+3. STRATÉGIE DE STOCKAGE
+   - COLLECTION : Chaque association a sa propre collection
+   - GLOBAL_COLLECTION : Toutes les associations dans une collection partagée
+   - IN_ENTITY : Associations embarquées dans le document principal (recommandé pour Big Data)
+
+4. OPTIONS DE DÉVELOPPEMENT
+   - hibernate.show_log : Affiche les opérations MongoDB dans les logs
+   - hibernate.format_sql : Formate les requêtes (lisibilité)
+   - hibernate.ogm.datastore.create_database : Crée la DB si elle n'existe pas
+
+5. ALTERNATIVE POLYGLOT PERSISTENCE
+   - Vous pouvez avoir plusieurs persistence-units
+   - Un pour MongoDB (données non structurées, événements)
+   - Un pour PostgreSQL (données transactionnelles, relations complexes)
+   - Utilisez @PersistenceContext(unitName="...") pour choisir
+
+6. INJECTION DANS LES REPOSITORIES
+   
+   @ApplicationScoped
+   public class EventRepository {
+       
+       @PersistenceContext(unitName = "streamingAnalyticsPU")
+       private EntityManager em;
+       
+       public void save(ViewEvent event) {
+           em.persist(event);
+       }
+   }
+
+7. TRANSACTIONS
+   - transaction-type="JTA" : Géré par le serveur d'application
+   - Utilisez @Transactional sur vos méthodes de service
+   - Le serveur gère automatiquement commit/rollback
+
+8. PERFORMANCE
+   - Créez des index MongoDB pour les champs fréquemment recherchés
+   - Utilisez la pagination pour les grandes listes
+   - Considérez le cache de second niveau pour les données peu changeantes
+
+═══════════════════════════════════════════════════════════════════════════
+-->
