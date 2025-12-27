@@ -21,7 +21,7 @@ public class DashboardServlet extends HttpServlet {
         out.println("<head>");
         out.println("    <meta charset='UTF-8'>");
         out.println("    <meta name='viewport' content='width=device-width, initial-scale=1.0'>");
-        out.println("    <title>Streaming Analytics Dashboard - Style Rétro</title>");
+        out.println("    <title>Streaming Analytics Dashboard - Entry</title>");
         out.println("    <style>");
         out.println("        * {");
         out.println("            margin: 0;");
@@ -176,16 +176,17 @@ public class DashboardServlet extends HttpServlet {
         out.println("</head>");
         out.println("<body>");
         out.println("    <div class='retro-container'>");
-        out.println("        <h1>📊 " + message + " 📊</h1>");
+        out.println("        <h1>" + message + "</h1>");
         out.println("        <p class='welcome-text'>Bienvenue dans le tableau de bord d'analyse de streaming vidéo !</p>");
         out.println("        <p class='welcome-text'>Découvrez les statistiques de vos vidéos préférées en temps réel.</p>");
         out.println("        ");
         out.println("        <div style='text-align: center; margin: 30px 0;'>");
-        out.println("            <a href='stats' class='retro-button'>📊 Voir les Statistiques 📊</a>");
+        out.println("            <a href='stats' class='retro-button'>View Statistics</a>");
+        out.println("            <a href='dashboard/view' class='retro-button'>Full Dashboard</a>");
         out.println("        </div>");
         out.println("        ");
         out.println("        <div class='stats-section'>");
-        out.println("            <h2>📈 Aperçu Rapide</h2>");
+        out.println("            <h2>Quick Overview</h2>");
         out.println("            <div class='stats-grid'>");
         out.println("                <div class='stat-card'>");
         out.println("                    <div class='stat-number'>100K+</div>");
@@ -203,7 +204,7 @@ public class DashboardServlet extends HttpServlet {
         out.println("        </div>");
         out.println("        ");
         out.println("        <div class='retro-footer'>");
-        out.println("            <p>🕹️ Système d'Analyse Streaming - 2025 🕹️</p>");
+        out.println("            <p>Streaming Analytics System - 2025</p>");
         out.println("            <p>Propulsé par Jakarta EE & MongoDB</p>");
         out.println("        </div>");
         out.println("    </div>");

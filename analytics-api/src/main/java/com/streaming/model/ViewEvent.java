@@ -1,4 +1,4 @@
-package com.streaming.analytics.model;
+package com.streaming.model;
 
 /**
  * Entité représentant un événement de visualisation

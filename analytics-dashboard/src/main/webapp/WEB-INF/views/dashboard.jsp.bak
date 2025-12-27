@@ -348,19 +348,19 @@
             <h2 class="section-title">Statistiques en temps réel</h2>
             <div id="realtime-stats" class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number" id="current-viewers">${currentViewers}</div>
+                    <div class="stat-number" id="current-viewers">0</div>
                     <div class="stat-label">Spectateurs actuels</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="events-per-second">${eventsPerSecond}</div>
+                    <div class="stat-number" id="events-per-second">0</div>
                     <div class="stat-label">Événements/seconde</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="active-users">${activeUsers}</div>
+                    <div class="stat-number" id="active-users">0</div>
                     <div class="stat-label">Utilisateurs actifs</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="most-watched">${mostWatchedVideo}</div>
+                    <div class="stat-number" id="most-watched">N/A</div>
                     <div class="stat-label">Vidéo la plus regardée</div>
                 </div>
             </div>
@@ -468,11 +468,11 @@
                 const card = document.createElement('div');
                 card.className = 'recommendation-card';
                 card.innerHTML = `
-                    <h3>#\${index + 1} - \${rec.videoTitle || 'Video: ' + rec.videoId}</h3>
-                    <p><strong>Catégorie:</strong> \${rec.category || 'N/A'}</p>
-                    <p><strong>Vues:</strong> \${formatNumber(rec.views || 0)}</p>
-                    <p><strong>Score de pertinence:</strong> \${((rec.relevanceScore || 0) * 100).toFixed(1)}%</p>
-                    <p><strong>Raison:</strong> <em>\${rec.reason || 'Recommandé pour vous'}</em></p>
+                    <h3>#${index + 1} - ${rec.videoTitle || 'Video: ' + rec.videoId}</h3>
+                    <p><strong>Catégorie:</strong> ${rec.category || 'N/A'}</p>
+                    <p><strong>Vues:</strong> ${formatNumber(rec.views || 0)}</p>
+                    <p><strong>Score de pertinence:</strong> ${((rec.relevanceScore || 0) * 100).toFixed(1)}%</p>
+                    <p><strong>Raison:</strong> <em>${rec.reason || 'Recommandé pour vous'}</em></p>
                 `;
                 container.appendChild(card);
             });

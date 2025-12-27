@@ -1,129 +1,46 @@
 package com.streaming.model;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Represents a user profile with viewing history and preferences
+ * Entité représentant le profil d'un utilisateur
  */
-@Entity
-@Table(name = "user_profiles")
 public class UserProfile {
 
-    @Id
     private String userId;
-    
-    @ElementCollection
-    private List<String> watchHistory;
-    
-    @ElementCollection
-    private Map<String, Integer> categoryPreferences;
-    
-    @ElementCollection
-    private List<String> recommendedVideos;
-    
-    private Instant lastUpdated;
+    private String preferredCategories;
+    private int totalWatchTime;
+    private int videosWatched;
+    private String lastActivity;
+    private String favoriteDevice;
 
-    // Default constructor for JPA
-    public UserProfile() {
-        this.watchHistory = new ArrayList<>();
-        this.categoryPreferences = new HashMap<>();
-        this.recommendedVideos = new ArrayList<>();
-    }
+    // Constructors
+    public UserProfile() {}
 
-    public UserProfile(String userId) {
+    public UserProfile(String userId, String preferredCategories, int totalWatchTime,
+                      int videosWatched, String lastActivity, String favoriteDevice) {
         this.userId = userId;
-        this.watchHistory = new ArrayList<>();
-        this.categoryPreferences = new HashMap<>();
-        this.recommendedVideos = new ArrayList<>();
-        this.lastUpdated = Instant.now();
-    }
-
-    /**
-     * Updates user profile with a watch event
-     * @param videoId The video ID that was watched
-     * @param category The category of the video
-     */
-    public void addWatchEvent(String videoId, String category) {
-        // Add to watch history (keep last 50 videos)
-        if (!watchHistory.contains(videoId)) {
-            watchHistory.add(0, videoId);
-            if (watchHistory.size() > 50) {
-                watchHistory.remove(watchHistory.size() - 1);
-            }
-        }
-        
-        // Update category preferences
-        categoryPreferences.put(category, categoryPreferences.getOrDefault(category, 0) + 1);
-        
-        this.lastUpdated = Instant.now();
-    }
-
-    /**
-     * Updates the recommended videos list for this user
-     * @param recommendations List of video IDs to recommend
-     */
-    public void updateRecommendations(List<String> recommendations) {
-        this.recommendedVideos = new ArrayList<>(recommendations);
-        this.lastUpdated = Instant.now();
+        this.preferredCategories = preferredCategories;
+        this.totalWatchTime = totalWatchTime;
+        this.videosWatched = videosWatched;
+        this.lastActivity = lastActivity;
+        this.favoriteDevice = favoriteDevice;
     }
 
     // Getters and Setters
-    public String getUserId() {
-        return userId;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public String getPreferredCategories() { return preferredCategories; }
+    public void setPreferredCategories(String preferredCategories) { this.preferredCategories = preferredCategories; }
 
-    public List<String> getWatchHistory() {
-        return watchHistory;
-    }
+    public int getTotalWatchTime() { return totalWatchTime; }
+    public void setTotalWatchTime(int totalWatchTime) { this.totalWatchTime = totalWatchTime; }
 
-    public void setWatchHistory(List<String> watchHistory) {
-        this.watchHistory = watchHistory;
-    }
+    public int getVideosWatched() { return videosWatched; }
+    public void setVideosWatched(int videosWatched) { this.videosWatched = videosWatched; }
 
-    public Map<String, Integer> getCategoryPreferences() {
-        return categoryPreferences;
-    }
+    public String getLastActivity() { return lastActivity; }
+    public void setLastActivity(String lastActivity) { this.lastActivity = lastActivity; }
 
-    public void setCategoryPreferences(Map<String, Integer> categoryPreferences) {
-        this.categoryPreferences = categoryPreferences;
-    }
-
-    public List<String> getRecommendedVideos() {
-        return recommendedVideos;
-    }
-
-    public void setRecommendedVideos(List<String> recommendedVideos) {
-        this.recommendedVideos = recommendedVideos;
-    }
-
-    public Instant getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(Instant lastUpdated) {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @Override
-    public String toString() {
-        return "UserProfile{" +
-                "userId='" + userId + '\'' +
-                ", watchHistorySize=" + watchHistory.size() +
-                ", categoryPreferencesSize=" + categoryPreferences.size() +
-                ", recommendedVideosSize=" + recommendedVideos.size() +
-                ", lastUpdated=" + lastUpdated +
-                '}';
-    }
+    public String getFavoriteDevice() { return favoriteDevice; }
+    public void setFavoriteDevice(String favoriteDevice) { this.favoriteDevice = favoriteDevice; }
 }

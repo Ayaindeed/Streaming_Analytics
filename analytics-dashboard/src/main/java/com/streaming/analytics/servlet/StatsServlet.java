@@ -10,6 +10,7 @@ import org.bson.Document;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @WebServlet(name = "statsServlet", value = "/stats")
@@ -24,7 +25,7 @@ public class StatsServlet extends HttpServlet {
         try {
             this.mongoClient = MongoClients.create("mongodb://admin:admin123@mongodb:27017");
             this.database = mongoClient.getDatabase("streaming_analytics");
-            this.eventsCollection = database.getCollection("viewevents");
+            this.eventsCollection = database.getCollection("events"); // Fixed: use "events" not "viewevents"
             this.videosCollection = database.getCollection("videos");
         } catch (Exception e) {
             System.err.println("Erreur de connexion MongoDB: " + e.getMessage());
@@ -45,9 +46,14 @@ public class StatsServlet extends HttpServlet {
             totalEvents = eventsCollection.countDocuments();
             totalVideos = videosCollection.countDocuments();
 
-            // Compter les utilisateurs uniques
-            List<String> distinctUsers = eventsCollection.distinct("userId", String.class).into(new ArrayList<>());
-            totalUsers = distinctUsers.size();
+            // Compter les utilisateurs uniques avec aggregation (FAST)
+            List<Document> userCountPipeline = Arrays.asList(
+                new Document("$group", new Document("_id", "$userId")),
+                new Document("$count", "totalUsers")
+            );
+            for (Document doc : eventsCollection.aggregate(userCountPipeline)) {
+                totalUsers = doc.getInteger("totalUsers", 0);
+            }
 
         } catch (Exception e) {
             System.err.println("Erreur lors de la récupération des statistiques: " + e.getMessage());
@@ -232,7 +238,7 @@ public class StatsServlet extends HttpServlet {
         out.println("</head>");
         out.println("<body>");
         out.println("    <div class='retro-container'>");
-        out.println("        <h1><span class='status-indicator'></span>📊 Statistiques Temps Réel 📊</h1>");
+        out.println("        <h1><span class='status-indicator'></span>Real-time Statistics</h1>");
         out.println("        ");
         out.println("        <div class='stats-overview'>");
         out.println("            <div class='stat-card'>");
@@ -250,15 +256,15 @@ public class StatsServlet extends HttpServlet {
         out.println("        </div>");
         out.println("        ");
         out.println("        <div class='info-box'>");
-        out.println("            <h3>💡 Informations Système</h3>");
+        out.println("            <h3>System Information</h3>");
         out.println("            <p>Base de données : MongoDB connectée</p>");
         out.println("            <p>Technologie : Jakarta EE + JAX-RS</p>");
         out.println("            <p>Infrastructure : Docker Compose</p>");
         out.println("        </div>");
         out.println("        ");
         out.println("        <div class='navigation'>");
-        out.println("            <a href='dashboard' class='retro-button'>🏠 Retour au Dashboard</a>");
-        out.println("            <a href='/analytics-api/api/v1/analytics/health' class='retro-button' target='_blank'>🔍 API Health Check</a>");
+        out.println("            <a href='dashboard' class='retro-button'>Back to Dashboard</a>");
+        out.println("            <a href='/analytics-api/api/v1/analytics/health' class='retro-button' target='_blank'>API Health Check</a>");
         out.println("        </div>");
         out.println("        ");
         out.println("        <div class='retro-footer'>");

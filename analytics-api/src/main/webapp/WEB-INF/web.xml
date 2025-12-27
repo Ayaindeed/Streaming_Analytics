@@ -7,17 +7,24 @@
 
     <display-name>Analytics API</display-name>
 
+    <!-- Weld CDI Listener -->
+    <listener>
+        <listener-class>org.jboss.weld.environment.servlet.Listener</listener-class>
+    </listener>
+
+    <!-- Resource configuration for Weld -->
+    <resource-env-ref>
+        <resource-env-ref-name>BeanManager</resource-env-ref-name>
+        <resource-env-ref-type>jakarta.enterprise.inject.spi.BeanManager</resource-env-ref-type>
+    </resource-env-ref>
+
     <!-- Configuration JAX-RS -->
     <servlet>
         <servlet-name>jakarta.ws.rs.core.Application</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>jakarta.ws.rs.Application</param-name>
-            <param-value>com.streaming.analytics.api.RestApplication</param-value>
-        </init-param>
-        <init-param>
-            <param-name>jersey.config.server.provider.packages</param-name>
-            <param-value>com.streaming.analytics.api</param-value>
+            <param-value>com.streaming.config.ApplicationConfig</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -26,11 +33,5 @@
         <servlet-name>jakarta.ws.rs.core.Application</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
-
-    <!-- Configuration CDI -->
-    <context-param>
-        <param-name>jakarta.faces.PROJECT_STAGE</param-name>
-        <param-value>Development</param-value>
-    </context-param>
 
 </web-app>

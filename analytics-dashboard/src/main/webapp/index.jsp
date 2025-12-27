@@ -222,19 +222,16 @@
 
         <div class="feature-grid">
             <div class="feature-card">
-                <span class="feature-icon">📊</span>
                 <div class="feature-title">Real-time Analytics</div>
                 <div class="feature-description">Monitor live streaming metrics, user engagement, and content performance with instant updates.</div>
             </div>
 
             <div class="feature-card">
-                <span class="feature-icon">🎯</span>
                 <div class="feature-title">Smart Recommendations</div>
                 <div class="feature-description">AI-powered content suggestions based on user preferences and viewing patterns.</div>
             </div>
 
             <div class="feature-card">
-                <span class="feature-icon">📈</span>
                 <div class="feature-title">Performance Insights</div>
                 <div class="feature-description">Detailed analytics on video popularity, user demographics, and engagement metrics.</div>
             </div>

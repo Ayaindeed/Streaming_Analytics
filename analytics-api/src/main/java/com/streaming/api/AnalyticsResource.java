@@ -1,11 +1,8 @@
 package com.streaming.api;
 
-import com.streaming.model.Event;
-import com.streaming.model.Video;
-import com.streaming.model.VideoStats;
-import com.streaming.service.AnalyticsService;
+import com.streaming.model.*;
 import com.streaming.service.EventProcessorService;
-import com.streaming.service.RecommendationService;
+import com.streaming.service.AnalyticsService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -15,238 +12,239 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * REST API endpoints for analytics operations
+ * REST API for streaming analytics with Service Layer architecture
  */
 @Path("/api/v1/analytics")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
 public class AnalyticsResource {
-    
+
     @Inject
-    private EventProcessorService processorService;
-    
-    @Inject
-    private RecommendationService recommendationService;
+    private EventProcessorService eventProcessorService;
     
     @Inject
     private AnalyticsService analyticsService;
     
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     
     /**
-     * Health check endpoint
-     * 
-     * @return Health status
+     * Health check endpoint - simple and fast
      */
     @GET
     @Path("/health")
     public Response healthCheck() {
-        Map<String, String> health = new HashMap<>();
-        health.put("status", "UP");
-        health.put("timestamp", java.time.Instant.now().toString());
-        return Response.ok(health).build();
+        return Response.ok(Map.of(
+            "status", "UP", 
+            "timestamp", System.currentTimeMillis()
+        )).build();
     }
     
     /**
-     * Ingests a single event
-     * 
-     * @param event Event to ingest
-     * @return Success response
-     */
-    @POST
-    @Path("/events")
-    public Response ingestEvent(Event event) {
-        try {
-            processorService.processEvent(event);
-            return Response.status(Response.Status.CREATED).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", e.getMessage()))
-                    .build();
-        }
-    }
-    
-    /**
-     * Ingests a batch of events
-     * 
-     * @param events List of events to ingest
-     * @return Success response
-     */
-    @POST
-    @Path("/events/batch")
-    public Response ingestBatch(List<Event> events) {
-        try {
-            processorService.processBatch(events);
-            return Response.status(Response.Status.CREATED)
-                    .entity(Map.of("processed", events.size()))
-                    .build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", e.getMessage()))
-                    .build();
-        }
-    }
-    
-    /**
-     * Gets top videos by views
-     * 
-     * @param limit Maximum number of results
-     * @return List of top video statistics
+     * Detailed stats endpoint
      */
     @GET
-    @Path("/videos/top")
-    public Response getTopVideos(@QueryParam("limit") @DefaultValue("10") int limit) {
-        List<VideoStats> topVideos = processorService.getTopVideos(limit);
-        return Response.ok(topVideos).build();
+    @Path("/stats")
+    public Response getStats() {
+        EventProcessorService.ProcessingStats stats = eventProcessorService.getProcessingStats();
+        return Response.ok(Map.of(
+            "status", "UP", 
+            "timestamp", System.currentTimeMillis(),
+            "processedEvents", stats.getProcessedCount(),
+            "failedEvents", stats.getFailedCount(),
+            "successRate", stats.getSuccessRate()
+        )).build();
     }
     
     /**
-     * Gets statistics for a specific video
-     * 
-     * @param videoId Video ID
-     * @return Video statistics
+     * Real-time stats stream via SSE
      */
     @GET
-    @Path("/videos/{videoId}/stats")
-    public Response getVideoStats(@PathParam("videoId") String videoId) {
-        try {
-            VideoStats stats = processorService.getTopVideos(Integer.MAX_VALUE).stream()
-                    .filter(vs -> vs.getVideoId().equals(videoId))
-                    .findFirst()
-                    .orElse(null);
-            
-            if (stats == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
+    @Path("/realtime/stream")
+    @Produces("text/event-stream")
+    public void streamRealtimeStats(@Context SseEventSink eventSink, @Context Sse sse) {
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                RealTimeStats stats = analyticsService.getRealTimeStatistics();
+                if (stats == null) {
+                    stats = new RealTimeStats();
+                }
+                
+                OutboundSseEvent event = sse.newEventBuilder()
+                        .name("stats")
+                        .data(stats)
+                        .build();
+                eventSink.send(event);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            
-            return Response.ok(stats).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", e.getMessage()))
-                    .build();
-        }
+        }, 0, 1, TimeUnit.SECONDS);
     }
     
     /**
-     * Gets personalized recommendations for a user
-     * 
-     * @param userId User ID
-     * @param limit Maximum number of recommendations
-     * @return List of recommended videos
+     * Get personalized recommendations for a user
      */
     @GET
     @Path("/users/{userId}/recommendations")
     public Response getRecommendations(
             @PathParam("userId") String userId,
-            @QueryParam("limit") @DefaultValue("10") int limit) {
-        try {
-            List<Video> recommendations = recommendationService.getRecommendations(userId, limit);
-            return Response.ok(recommendations).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", e.getMessage()))
-                    .build();
-        }
-    }
-    
-    /**
-     * Gets statistics by category
-     * 
-     * @return Map of category statistics
-     */
-    @GET
-    @Path("/categories/stats")
-    public Response getCategoryStats() {
-        try {
-            Map<String, AnalyticsService.CategoryStats> stats = analyticsService.aggregateByCategory();
-            return Response.ok(stats).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", e.getMessage()))
-                    .build();
-        }
-    }
-    
-    /**
-     * Gets trending videos
-     * 
-     * @param limit Maximum number of trending videos
-     * @return List of trending videos
-     */
-    @GET
-    @Path("/videos/trending")
-    public Response getTrendingVideos(@QueryParam("limit") @DefaultValue("10") int limit) {
-        try {
-            List<Video> trendingVideos = analyticsService.detectTrending(limit);
-            return Response.ok(trendingVideos).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", e.getMessage()))
-                    .build();
-        }
-    }
-    
-    /**
-     * Streams real-time stats using Server-Sent Events
-     * 
-     * @param sseEventSink SSE event sink
-     * @param sse SSE context
-     */
-    @GET
-    @Path("/realtime/stream")
-    @Produces(MediaType.SERVER_SENT_EVENTS)
-    public void streamRealtime(@Context SseEventSink sseEventSink, @Context Sse sse) {
-        // Send an initial event
-        OutboundSseEvent event = sse.newEventBuilder()
-                .name("stats")
-                .mediaType(MediaType.APPLICATION_JSON_TYPE)
-                .data(Map.of("connected", true, "timestamp", System.currentTimeMillis()))
-                .build();
-        sseEventSink.send(event);
+            @QueryParam("limit") @DefaultValue("5") int limit,
+            @QueryParam("category") String category) {
         
-        // Schedule periodic stats updates
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                // Get recent events
-                ConcurrentLinkedQueue<Event> recentEvents = processorService.getRecentEvents();
-                
-                // Get global stats
-                Map<String, Object> globalStats = analyticsService.getGlobalStats();
-                
-                // Create combined data
-                Map<String, Object> data = new HashMap<>();
-                data.put("recentEventsCount", recentEvents.size());
-                data.put("globalStats", globalStats);
-                data.put("timestamp", System.currentTimeMillis());
-                
-                // Send the event
-                OutboundSseEvent sseEvent = sse.newEventBuilder()
-                        .name("stats")
-                        .mediaType(MediaType.APPLICATION_JSON_TYPE)
-                        .data(data)
+        List<VideoRecommendation> recommendations = 
+            analyticsService.getPersonalizedRecommendations(userId, limit, category);
+        return Response.ok(Map.of("data", recommendations)).build();
+    }
+    
+    /**
+     * Ingest single event
+     */
+    @POST
+    @Path("/events")
+    public Response ingestEvent(ViewEvent event) {
+        try {
+            EventProcessingResult result = eventProcessorService.ingestEvent(event);
+            
+            if (result.isSuccess()) {
+                return Response.status(Response.Status.CREATED)
+                        .entity(Map.of(
+                            "status", "created", 
+                            "eventId", result.getEventId(),
+                            "message", result.getMessage()
+                        ))
                         .build();
-                sseEventSink.send(sseEvent);
-            } catch (Exception e) {
-                // Log error but don't break the stream
-                System.err.println("Error sending SSE: " + e.getMessage());
+            } else {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", result.getMessage()))
+                        .build();
             }
-        }, 0, 2, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        }
+    }
+    
+    /**
+     * Ingest batch of events
+     */
+    @POST
+    @Path("/events/batch")
+    public Response ingestBatch(List<ViewEvent> events) {
+        try {
+            EventProcessingResult result = eventProcessorService.ingestBatch(events);
+            
+            if (result.isSuccess()) {
+                return Response.ok(Map.of(
+                        "status", "success",
+                        "processed", events.size(),
+                        "message", result.getMessage()
+                )).build();
+            } else {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", result.getMessage()))
+                        .build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        }
+    }
+    
+    /**
+     * Get top videos
+     */
+    @GET
+    @Path("/videos/top")
+    public Response getTopVideos(
+            @QueryParam("limit") @DefaultValue("10") int limit,
+            @QueryParam("timeframe") @DefaultValue("24h") String timeframe) {
         
-        // Close event sink when client disconnects
-        sseEventSink.send(event).whenComplete((result, error) -> {
-            if (error != null) {
-                scheduler.shutdown();
+        try {
+            List<VideoStats> videos = analyticsService.getTopVideos(limit, timeframe);
+            return Response.ok(Map.of("data", videos)).build();
+        } catch (Exception e) {
+            return Response.ok(Map.of("data", Collections.emptyList())).build();
+        }
+    }
+    
+    /**
+     * Get video stats
+     */
+    @GET
+    @Path("/videos/{videoId}/stats")
+    public Response getVideoStats(
+            @PathParam("videoId") String videoId,
+            @QueryParam("detailed") @DefaultValue("false") boolean detailed) {
+        
+        try {
+            VideoStats stats = analyticsService.getVideoStatistics(videoId, detailed);
+            if (stats != null) {
+                return Response.ok(Map.of("data", stats)).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(Map.of("error", "Video not found"))
+                        .build();
             }
-        });
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        }
+    }
+    
+    /**
+     * Get trends
+     */
+    @GET
+    @Path("/trends")
+    public Response getTrends(@QueryParam("timeframe") @DefaultValue("24h") String timeframe) {
+        try {
+            TrendingStats trends = analyticsService.analyzeTrends(timeframe);
+            return Response.ok(Map.of("data", trends)).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        }
+    }
+    
+    /**
+     * Get real-time statistics (REST endpoint)
+     */
+    @GET
+    @Path("/realtime/stats")
+    public Response getRealTimeStats() {
+        try {
+            RealTimeStats stats = analyticsService.getRealTimeStatistics();
+            return Response.ok(Map.of("data", stats)).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        }
+    }
+    
+    /**
+     * Get KPIs
+     */
+    @GET
+    @Path("/kpis")
+    public Response getKPIs(@QueryParam("timeframe") @DefaultValue("24h") String timeframe) {
+        try {
+            AnalyticsService.PerformanceKPIs kpis = analyticsService.calculateKPIs(timeframe);
+            return Response.ok(Map.of("data", kpis)).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        }
     }
 }

@@ -1,98 +1,53 @@
 package com.streaming.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import java.time.Instant;
-
 /**
- * Represents metadata for a video
+ * Entité représentant une vidéo
  */
-@Entity
-@Table(name = "videos")
 public class Video {
 
-    @Id
     private String videoId;
-    
     private String title;
     private String category;
-    private int duration; // in seconds
-    private Instant uploadDate;
-    private String creator;
-    private String description;
-    
-    // Default constructor for JPA
-    public Video() {
-    }
+    private int duration;
+    private String uploadDate;
+    private int views;
+    private int likes;
 
-    public Video(String videoId, String title, String category, int duration, 
-                String creator, String description) {
+    // Constructors
+    public Video() {}
+
+    public Video(String videoId, String title, String category, int duration,
+                String uploadDate, int views, int likes) {
         this.videoId = videoId;
         this.title = title;
         this.category = category;
         this.duration = duration;
-        this.creator = creator;
-        this.description = description;
-        this.uploadDate = Instant.now();
+        this.uploadDate = uploadDate;
+        this.views = views;
+        this.likes = likes;
     }
 
     // Getters and Setters
-    public String getVideoId() {
-        return videoId;
-    }
+    public String getVideoId() { return videoId; }
+    public void setVideoId(String videoId) { this.videoId = videoId; }
 
-    public void setVideoId(String videoId) {
-        this.videoId = videoId;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public int getDuration() { return duration; }
+    public void setDuration(int duration) { this.duration = duration; }
 
-    public String getCategory() {
-        return category;
-    }
+    public String getUploadDate() { return uploadDate; }
+    public void setUploadDate(String uploadDate) { this.uploadDate = uploadDate; }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
+    public int getViews() { return views; }
+    public void setViews(int views) { this.views = views; }
 
-    public int getDuration() {
-        return duration;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
-
-    public Instant getUploadDate() {
-        return uploadDate;
-    }
-
-    public void setUploadDate(Instant uploadDate) {
-        this.uploadDate = uploadDate;
-    }
-
-    public String getCreator() {
-        return creator;
-    }
-
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public int getLikes() { return likes; }
+    public void setLikes(int likes) { this.likes = likes; }
 
     @Override
     public String toString() {
@@ -101,8 +56,9 @@ public class Video {
                 ", title='" + title + '\'' +
                 ", category='" + category + '\'' +
                 ", duration=" + duration +
-                ", uploadDate=" + uploadDate +
-                ", creator='" + creator + '\'' +
+                ", uploadDate='" + uploadDate + '\'' +
+                ", views=" + views +
+                ", likes=" + likes +
                 '}';
     }
 }

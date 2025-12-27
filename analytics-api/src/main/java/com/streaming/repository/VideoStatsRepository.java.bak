@@ -1,0 +1,103 @@
+package com.streaming.repository;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.streaming.model.VideoStats;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Repository pour les statistiques de vidéo utilisant MongoDB driver
+ */
+@ApplicationScoped
+public class VideoStatsRepository {
+
+    private final MongoClient mongoClient;
+    private final MongoDatabase database;
+    private final MongoCollection<Document> collection;
+
+    public VideoStatsRepository() {
+        // TODO: Configurer via properties
+        this.mongoClient = MongoClients.create("mongodb://admin:admin123@mongodb:27017");
+        this.database = mongoClient.getDatabase("streaming_analytics");
+        this.collection = database.getCollection("videostats");
+    }
+
+    /**
+     * Sauvegarde les statistiques d'une vidéo
+     */
+    public void save(VideoStats stats) {
+        Document doc = new Document()
+                .append("videoId", stats.getVideoId())
+                .append("totalViews", stats.getTotalViews())
+                .append("totalWatchTime", stats.getTotalWatchTime())
+                .append("averageWatchTime", stats.getAverageWatchTime())
+                .append("uniqueViewers", stats.getUniqueViewers())
+                .append("lastUpdated", stats.getLastUpdated());
+
+        // Utiliser findOneAndReplace pour upsert
+        collection.findOneAndReplace(
+                new Document("videoId", stats.getVideoId()),
+                doc,
+                new com.mongodb.client.options.FindOneAndReplaceOptions().upsert(true)
+        );
+    }
+
+    /**
+     * Trouve les statistiques d'une vidéo par ID
+     */
+    public VideoStats findByVideoId(String videoId) {
+        Document doc = collection.find(new Document("videoId", videoId)).first();
+        if (doc != null) {
+            return documentToVideoStats(doc);
+        }
+        return null;
+    }
+
+    /**
+     * Récupère toutes les statistiques
+     */
+    public List<VideoStats> findAll() {
+        List<VideoStats> statsList = new ArrayList<>();
+        for (Document doc : collection.find()) {
+            statsList.add(documentToVideoStats(doc));
+        }
+        return statsList;
+    }
+
+    /**
+     * Récupère les N vidéos avec le plus de vues
+     */
+    public List<VideoStats> findTopByViews(int limit) {
+        List<VideoStats> statsList = new ArrayList<>();
+        for (Document doc : collection.find()
+                .sort(new Document("totalViews", -1))
+                .limit(limit)) {
+            statsList.add(documentToVideoStats(doc));
+        }
+        return statsList;
+    }
+
+    /**
+     * Supprime les statistiques d'une vidéo
+     */
+    public void delete(String videoId) {
+        collection.deleteOne(new Document("videoId", videoId));
+    }
+
+    private VideoStats documentToVideoStats(Document doc) {
+        VideoStats stats = new VideoStats();
+        stats.setVideoId(doc.getString("videoId"));
+        stats.setTotalViews(doc.getLong("totalViews"));
+        stats.setTotalWatchTime(doc.getLong("totalWatchTime"));
+        stats.setAverageWatchTime(doc.getDouble("averageWatchTime"));
+        stats.setUniqueViewers(doc.getInteger("uniqueViewers"));
+        stats.setLastUpdated(doc.getString("lastUpdated"));
+        return stats;
+    }
+}

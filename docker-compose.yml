@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Base de données MongoDB pour le stockage des événements
+  # MongoDB Service
   mongodb:
     image: mongo:7.0
     container_name: streaming-mongodb
@@ -18,7 +18,7 @@ services:
     networks:
       - streaming-network
 
-  # Interface Web pour MongoDB (optionnel)
+  # MongoDB Admin UI
   mongo-express:
     image: mongo-express:latest
     container_name: streaming-mongo-express
@@ -34,48 +34,14 @@ services:
     networks:
       - streaming-network
 
-  # Serveur d'application JEE (à décommenter et configurer)
-  # Vous pouvez utiliser Wildfly, Payara, TomEE, ou Tomcat
-  
-  # Option 1 : Wildfly
-  # wildfly:
-  #   image: quay.io/wildfly/wildfly:31.0.0.Final-jdk17
-  #   container_name: streaming-wildfly
-  #   ports:
-  #     - "8080:8080"
-  #     - "9990:9990"
-  #   environment:
-  #     - WILDFLY_USER=admin
-  #     - WILDFLY_PASS=admin
-  #   volumes:
-  #     - ./analytics-api/target/analytics-api.war:/opt/jboss/wildfly/standalone/deployments/analytics-api.war
-  #   depends_on:
-  #     - mongodb
-  #   networks:
-  #     - streaming-network
-
-  # Option 2 : Payara
-  # payara:
-  #   image: payara/server-full:6.2023.12-jdk17
-  #   container_name: streaming-payara
-  #   ports:
-  #     - "8080:8080"
-  #     - "4848:4848"
-  #   volumes:
-  #     - ./analytics-api/target/analytics-api.war:/opt/payara/deployments/analytics-api.war
-  #   depends_on:
-  #     - mongodb
-  #   networks:
-  #     - streaming-network
-
-  # Option 3 : Tomcat (pour Servlet/JSP sans full JEE)
+  # Tomcat Server
   tomcat:
     image: tomcat:10.1-jdk17
     container_name: streaming-tomcat
     ports:
       - "8080:8080"
     volumes:
-      - ./analytics-api/target/analytics-api-1.0-SNAPSHOT.war:/usr/local/tomcat/webapps/analytics-api.war
+      - ./analytics-api/target/analytics-api.war:/usr/local/tomcat/webapps/analytics-api.war
       - ./analytics-dashboard/target/analytics-dashboard-1.0-SNAPSHOT.war:/usr/local/tomcat/webapps/analytics-dashboard.war
     environment:
       - CATALINA_OPTS=-Xms512m -Xmx1024m
@@ -89,77 +55,10 @@ services:
     networks:
       - streaming-network
 
-  # Redis pour le cache (BONUS - optionnel)
-  # redis:
-  #   image: redis:7-alpine
-  #   container_name: streaming-redis
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - redis_data:/data
-  #   networks:
-  #     - streaming-network
-
-  # Kafka + Zookeeper pour le streaming (BONUS - optionnel)
-  # zookeeper:
-  #   image: confluentinc/cp-zookeeper:7.5.0
-  #   container_name: streaming-zookeeper
-  #   environment:
-  #     ZOOKEEPER_CLIENT_PORT: 2181
-  #     ZOOKEEPER_TICK_TIME: 2000
-  #   networks:
-  #     - streaming-network
-
-  # kafka:
-  #   image: confluentinc/cp-kafka:7.5.0
-  #   container_name: streaming-kafka
-  #   depends_on:
-  #     - zookeeper
-  #   ports:
-  #     - "9092:9092"
-  #   environment:
-  #     KAFKA_BROKER_ID: 1
-  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  #   networks:
-  #     - streaming-network
-
-volumes:
-  mongodb_data:
-    driver: local
-  # redis_data:
-  #   driver: local
-
 networks:
   streaming-network:
     driver: bridge
 
-
-# ============================================================================
-# INSTRUCTIONS D'UTILISATION
-# ============================================================================
-#
-# 1. Lancer l'infrastructure :
-#    docker-compose up -d
-#
-# 2. Vérifier que MongoDB est démarré :
-#    docker-compose logs mongodb
-#
-# 3. Accéder à Mongo Express (interface web) :
-#    http://localhost:8081
-#
-# 4. Déployer votre application :
-#    - Compiler : mvn clean package
-#    - Le WAR sera automatiquement déployé via le volume mapping
-#
-# 5. Accéder à votre application :
-#    http://localhost:8080/analytics-api
-#
-# 6. Arrêter l'infrastructure :
-#    docker-compose down
-#
-# 7. Supprimer les données (attention !) :
-#    docker-compose down -v
-#
-# ============================================================================
+volumes:
+  mongodb_data:
+    driver: local
