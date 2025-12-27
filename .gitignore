@@ -16,7 +16,7 @@ dependency-reduced-pom.xml
 *.iws
 *.iml
 *.ipr
-
+architecture.md 
 ### Eclipse ###
 .apt_generated
 .classpath
