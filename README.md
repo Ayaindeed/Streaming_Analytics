@@ -1,6 +1,9 @@
 # Streaming Analytics Platform - Big Data Project
 
-Status: Production Ready | Jakarta EE 10 | MongoDB 7.0 | Tomcat 10.1
+![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![Jakarta EE](https://img.shields.io/badge/Jakarta%20EE-10-orange)
+![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green)
+![Tomcat](https://img.shields.io/badge/Tomcat-10.1-yellow)
 
 ## Overview
 
